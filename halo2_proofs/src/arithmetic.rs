@@ -8,6 +8,8 @@ use group::{
     Curve, Group as _,
 };
 
+use crate::multiexp::gpu_multiexp_consistency;
+
 pub use halo2curves::{CurveAffine, CurveExt, FieldExt, Group};
 
 fn multiexp_serial<C: CurveAffine>(coeffs: &[C::Scalar], bases: &[C], acc: &mut C::Curve) {
@@ -131,6 +133,8 @@ pub fn small_multiexp<C: CurveAffine>(coeffs: &[C::Scalar], bases: &[C]) -> C::C
 /// This will use multithreading if beneficial.
 pub fn best_multiexp<C: CurveAffine>(coeffs: &[C::Scalar], bases: &[C]) -> C::Curve {
     assert_eq!(coeffs.len(), bases.len());
+
+    gpu_multiexp_consistency();
 
     let num_threads = multicore::current_num_threads();
     if coeffs.len() > num_threads {
