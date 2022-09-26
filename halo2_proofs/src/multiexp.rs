@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use halo2curves::bn256::{Fq, Fr, G1Affine, G2Affine, Bn256, G1};
+use halo2curves::{CurveAffine};
 use ec_gpu::GpuName;
 use ec_gpu_gen::multiexp_cpu::{multiexp_cpu, FullDensity, QueryDensity, SourceBuilder};
 use ec_gpu_gen::{
@@ -29,7 +30,43 @@ where
     kern.multiexp(pool, bss, exps, skip).map_err(Into::into)
 }
 
-pub fn gpu_multiexp_consistency() {
+pub fn gpu_multiexp_consistency<C: CurveAffine>(coeffs: &[C::Scalar], bases: &[C]) -> C::Curve {
+    let devices = Device::all();
+    let programs = devices
+        .iter()
+        .map(|device| program!(device))
+        .collect::<Result<_, _>>()
+        .expect("Cannot create programs!");
+    let mut kern = MultiexpKernel::<G1Affine>::create(programs, &devices)
+        .expect("Cannot initialize kernel!");
+    let pool = Worker::new();
+    let g = Arc::new(bases.to_vec().clone());
+    let exponents: Vec<_> = coeffs.iter().map(|a| a.to_repr()).collect();
+    let v = Arc::new(exponents.clone());
+    let exps = FullDensity.as_ref().generate_exps::<C::Scalar>(v);
+    kern.multiexp(&pool, g, exps, skip).map_err(Into::into);
+    
+    // let gpu = multiexp_gpu(&pool, (g.clone(), 0), FullDensity, v.clone(), &mut kern).unwrap();
+        // let gpu_dur = now.elapsed().as_secs() * 1000 + now.elapsed().subsec_millis() as u64;
+        // println!("GPU took {}ms.", gpu_dur);
+
+        // now = Instant::now();
+        // let cpu = multiexp_cpu(&pool, (g.clone(), 0), FullDensity, v.clone())
+        //     .wait()
+        //     .unwrap();
+        // let cpu_dur = now.elapsed().as_secs() * 1000 + now.elapsed().subsec_millis() as u64;
+        // println!("CPU took {}ms.", cpu_dur);
+
+        // println!("Speedup: x{}", cpu_dur as f32 / gpu_dur as f32);
+
+        // assert_eq!(cpu, gpu);
+
+        // println!("============================");
+
+        // bases = [bases.clone(), bases.clone()].concat();
+}
+
+fn gpu_multiexp_test() {
     const MAX_LOG_D: usize = 16;
     const START_LOG_D: usize = 10;
     let devices = Device::all();
