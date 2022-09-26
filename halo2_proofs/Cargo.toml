@@ -66,6 +66,10 @@ gumdrop = "0.8"
 proptest = "1"
 rand_core = { version = "0.6", default-features = false, features = ["getrandom"] }
 
+[build-dependencies]
+ec-gpu-gen = { path = "../../ec-gpu/ec-gpu-gen" }
+halo2curves = { path = "../../halo2curves" }
+
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
 getrandom = { version = "0.2", features = ["js"] }
 
