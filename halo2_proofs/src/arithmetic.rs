@@ -9,6 +9,7 @@ use group::{
 };
 
 pub use halo2curves::{CurveAffine, CurveExt, FieldExt, Group};
+use crate::multiexp::gpu_multiexp_consistency;
 
 fn multiexp_serial<C: CurveAffine>(coeffs: &[C::Scalar], bases: &[C], acc: &mut C::Curve) {
     let coeffs: Vec<_> = coeffs.iter().map(|a| a.to_repr()).collect();
@@ -132,30 +133,32 @@ pub fn small_multiexp<C: CurveAffine>(coeffs: &[C::Scalar], bases: &[C]) -> C::C
 pub fn best_multiexp<C: CurveAffine>(coeffs: &[C::Scalar], bases: &[C]) -> C::Curve {
     assert_eq!(coeffs.len(), bases.len());
 
-    let num_threads = multicore::current_num_threads();
-    if coeffs.len() > num_threads {
-        let chunk = coeffs.len() / num_threads;
-        let num_chunks = coeffs.chunks(chunk).len();
-        let mut results = vec![C::Curve::identity(); num_chunks];
-        multicore::scope(|scope| {
-            let chunk = coeffs.len() / num_threads;
+    gpu_multiexp_consistency(coeffs, bases);
 
-            for ((coeffs, bases), acc) in coeffs
-                .chunks(chunk)
-                .zip(bases.chunks(chunk))
-                .zip(results.iter_mut())
-            {
-                scope.spawn(move |_| {
-                    multiexp_serial(coeffs, bases, acc);
-                });
-            }
-        });
-        results.iter().fold(C::Curve::identity(), |a, b| a + b)
-    } else {
-        let mut acc = C::Curve::identity();
-        multiexp_serial(coeffs, bases, &mut acc);
-        acc
-    }
+    // let num_threads = multicore::current_num_threads();
+    // if coeffs.len() > num_threads {
+    //     let chunk = coeffs.len() / num_threads;
+    //     let num_chunks = coeffs.chunks(chunk).len();
+    //     let mut results = vec![C::Curve::identity(); num_chunks];
+    //     multicore::scope(|scope| {
+    //         let chunk = coeffs.len() / num_threads;
+
+    //         for ((coeffs, bases), acc) in coeffs
+    //             .chunks(chunk)
+    //             .zip(bases.chunks(chunk))
+    //             .zip(results.iter_mut())
+    //         {
+    //             scope.spawn(move |_| {
+    //                 multiexp_serial(coeffs, bases, acc);
+    //             });
+    //         }
+    //     });
+    //     results.iter().fold(C::Curve::identity(), |a, b| a + b)
+    // } else {
+    //     let mut acc = C::Curve::identity();
+    //     multiexp_serial(coeffs, bases, &mut acc);
+    //     acc
+    // }
 }
 
 /// Performs a radix-$2$ Fast-Fourier Transformation (FFT) on a vector of size

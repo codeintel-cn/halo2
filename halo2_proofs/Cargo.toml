@@ -74,11 +74,13 @@ halo2curves = { path = "../../halo2curves" }
 getrandom = { version = "0.2", features = ["js"] }
 
 [features]
-default = ["batch"]
+default = ["batch", "opencl", "cuda"]
 dev-graph = ["plotters", "tabbycat"]
 gadget-traces = ["backtrace"]
 sanity-checks = []
 batch = ["rand_core/getrandom"]
+cuda = ["ec-gpu-gen/cuda"]
+opencl = ["ec-gpu-gen/opencl"]
 
 [lib]
 bench = false
