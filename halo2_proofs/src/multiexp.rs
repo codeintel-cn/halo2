@@ -50,7 +50,7 @@ pub fn gpu_multiexp_consistency<C: CurveAffine>(coeffs: &[C::Scalar], bases: &[C
     return gpu;
 }
 
-fn gpu_multiexp_test() {
+pub fn gpu_multiexp_test() {
     const MAX_LOG_D: usize = 16;
     const START_LOG_D: usize = 10;
     let devices = Device::all();
