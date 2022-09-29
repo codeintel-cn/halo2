@@ -132,6 +132,8 @@ pub fn small_multiexp<C: CurveAffine>(coeffs: &[C::Scalar], bases: &[C]) -> C::C
 pub fn best_multiexp<C: CurveAffine>(coeffs: &[C::Scalar], bases: &[C]) -> C::Curve {
     assert_eq!(coeffs.len(), bases.len());
 
+    print!("Running gpu msm test");
+    crate::multiexp::gpu_multiexp_test()
     print!("Running best multiexp in here");
     crate::multiexp::gpu_multiexp_consistency(coeffs, bases);
 
