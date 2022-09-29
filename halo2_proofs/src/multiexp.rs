@@ -30,7 +30,16 @@ where
     kern.multiexp(pool, bss, exps, skip).map_err(Into::into)
 }
 
+fn print_type_of<T>(_: &T) {
+    println!("{}", std::any::type_name::<T>())
+}
+
 pub fn gpu_multiexp_consistency<C: CurveAffine>(coeffs: &[C::Scalar], bases: &[C]) -> C::Curve {
+
+    print_type_of(&bases[0]);
+    print_type_of(&coeffs[0]);
+    print_type_of(&C);
+
     let devices = Device::all();
     let programs = devices
         .iter()
