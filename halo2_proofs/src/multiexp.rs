@@ -38,7 +38,6 @@ pub fn gpu_multiexp_consistency<C: CurveAffine>(coeffs: &[C::Scalar], bases: &[C
 
     print_type_of(&bases[0]);
     print_type_of(&coeffs[0]);
-    print_type_of(&C);
 
     let devices = Device::all();
     let programs = devices
