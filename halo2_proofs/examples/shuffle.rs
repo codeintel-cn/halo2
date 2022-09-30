@@ -333,7 +333,7 @@ fn main() {
 
     {
         test_mock_prover(K, circuit.clone(), Ok(()));
-        test_prover::<G1Affine, W, H>(K, circuit.clone(), true);
+        test_prover::<EqAffine, W, H>(K, circuit.clone(), true);
     }
 
     #[cfg(not(feature = "sanity-checks"))]
